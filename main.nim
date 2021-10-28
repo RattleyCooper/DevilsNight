@@ -49,30 +49,30 @@ var cam = ivec2()
 method update(self: Obj) {.base.} =
   discard
 
-method update(self: Player) =
-  self.direction = block:
-    var res = ivec2(0, 0)
-    if btn(pcRight): res.x = 1
-    elif btn(pcLeft): res.x = -1
+# method update(self: Player) =
+#   self.direction = block:
+#     var res = ivec2(0, 0)
+#     if btn(pcRight): res.x = 1
+#     elif btn(pcLeft): res.x = -1
 
-    if btn(pcUp): res.y = -1
-    elif btn(pcDown): res.y = 1
+#     if btn(pcUp): res.y = -1
+#     elif btn(pcDown): res.y = 1
 
-    res
+#     res
 
-  var maxSpeed = 2.0
-  var acceleration = 0.6
-  var decceleration = 0.15
+#   var maxSpeed = 2.0
+#   var acceleration = 0.6
+#   var decceleration = 0.15
 
-  if abs(self.velocity.x) > maxSpeed:
-    self.velocity.x = approach(self.velocity.x, self.direction.x.float32 * maxSpeed, decceleration)
-  else:
-    self.velocity.x = approach(self.velocity.x, self.direction.x.float32 * maxSpeed, acceleration)  
+#   if abs(self.velocity.x) > maxSpeed:
+#     self.velocity.x = approach(self.velocity.x, self.direction.x.float32 * maxSpeed, decceleration)
+#   else:
+#     self.velocity.x = approach(self.velocity.x, self.direction.x.float32 * maxSpeed, acceleration)  
 
-  if abs(self.velocity.y) > maxSpeed:
-    self.velocity.y = approach(self.velocity.y, self.direction.y.float32 * maxSpeed, decceleration)
-  else:
-    self.velocity.y = approach(self.velocity.y, self.direction.y.float32 * maxSpeed, acceleration)  
+#   if abs(self.velocity.y) > maxSpeed:
+#     self.velocity.y = approach(self.velocity.y, self.direction.y.float32 * maxSpeed, decceleration)
+#   else:
+#     self.velocity.y = approach(self.velocity.y, self.direction.y.float32 * maxSpeed, acceleration)  
 
 
 method draw(self: Obj) {.base.} =
@@ -84,7 +84,8 @@ method draw(self: Player) =
   rect(self.position.x + self.hitbox.x, self.position.y + self.hitbox.y, self.position.x + self.hitbox.x + self.hitbox.w - 1, self.position.y + self.hitbox.y + self.hitbox.h - 1)
 
 proc gameInit() =
-  setPalette(loadPaletteFromGPL("palette.gpl"))
+  let pl = loadPaletteFromImage("palette.png")
+  setPalette(pl)
   loadSpriteSheet(0, "Houses-32x48.png", 32, 48)
   loadSpriteSheet(1, "Tiles-16x16.png", 16, 16)
   loadSpriteSheet(2, "V1_Road.png", 512, 96)
