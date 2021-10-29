@@ -7,6 +7,9 @@ type
   Directions = enum
     dNone, dUp, dDown, dLeft, dRight
 
+  RoadStages = enum
+    rs0, rs1, rs2, rs3, rs4, rs5, rs6
+
   Hitbox = tuple
     x, y, w, h: int
   
@@ -28,6 +31,7 @@ type
 
   GameState = ref object of RootObj
     state: GameStates
+    currentStage: RoadStages
 
 proc newPlayer(x, y: int): Player = 
   result = new Player
@@ -37,6 +41,7 @@ proc newPlayer(x, y: int): Player =
 
 var gs = new GameState
 gs.state = gsWaiting
+gs.currentStage = rs0
 
 var player = newPlayer(15, 15)
 var objects = newSeq[Obj]()
@@ -147,7 +152,21 @@ proc gameDraw() =
   
   block road:
     setSpritesheet(2)
-    spr(0, -80, 128)
+    case gs.currentStage:
+    of rs0:
+      spr(0, -80, 128)
+    of rs1:
+      spr(1, -80, 128)      
+    of rs2:
+      spr(2, -80, 128)
+    of rs3:
+      spr(3, -80, 128)
+    of rs4:
+      spr(4, -80, 128)
+    of rs5:
+      spr(5, -80, 128)
+    of rs6:
+      spr(6, -80, 128)
 
   if gs.state == gsWaiting:
     setColor(7)
