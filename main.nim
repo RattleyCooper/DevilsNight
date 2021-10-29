@@ -27,6 +27,7 @@ type
   Player = ref object of Obj
     holding: Obj
     direction: IVec2
+    lastDirection: int
   
   DropLocation = ref object of Obj
 
@@ -44,6 +45,7 @@ proc newPlayer(x, y: int): Player =
   result.position = ivec2(x, y)
   result.hitbox = (x: x, y: y, w: 8, h: 8)
   result.velocity = vec2(0.0, 0.0)
+  result.lastDirection = 1
 
 proc newHouse(style: Houses): House = 
   result = new House
@@ -79,11 +81,15 @@ var cam = ivec2()
 method update(self: Obj) {.base.} =
   discard
 
-# method update(self: Player) =
-#   self.direction = block:
-#     var res = ivec2(0, 0)
-#     if btn(pcRight): res.x = 1
-#     elif btn(pcLeft): res.x = -1
+method update(self: Player) =
+  gs.player.direction = block:
+    var res = ivec2(0, 0)
+    if btn(pcRight): 
+      res.x = 1
+      gs.player.lastDirection = 1
+    elif btn(pcLeft): 
+      res.x = -1
+      gs.player.lastDirection = -1
 
 #     if btn(pcUp): res.y = -1
 #     elif btn(pcDown): res.y = 1
@@ -111,14 +117,44 @@ method draw(self: Obj) {.base.} =
 
 method draw(self: Player) =
   setColor(11)
-  rect(self.position.x + self.hitbox.x, self.position.y + self.hitbox.y, self.position.x + self.hitbox.x + self.hitbox.w - 1, self.position.y + self.hitbox.y + self.hitbox.h - 1)
+  var whichSprite = block:
+    var sp: int
+    if (gs.player.direction.x != 0 or gs.player.direction.y != 0) and gs.frame >= 15:
+      sp = 1
+    elif gs.player.direction.x != 0 or gs.player.direction.y != 0:
+      sp = 2
+    else:
+      sp = 0
+    sp
+  setSpritesheet(4)
+  if gs.player.direction.x == -1:
+    spr(
+      whichSprite, 
+      gs.player.position.x, 
+      gs.player.position.y, 
+      1, 1, 
+      true
+    )
+  elif gs.player.direction.x == 1:
+    spr(whichSprite, gs.player.position.x, gs.player.position.y)
+  else:
+    spr(
+      whichSprite, 
+      gs.player.position.x, 
+      gs.player.position.y, 
+      1, 1, 
+      if gs.player.lastDirection == 1: false else: true
+    )
+  # rect(self.position.x + self.hitbox.x, self.position.y + self.hitbox.y, self.position.x + self.hitbox.x + self.hitbox.w - 1, self.position.y + self.hitbox.y + self.hitbox.h - 1)
 
 proc gameInit() =
   let pl = loadPaletteFromImage("palette.png")
   setPalette(pl)
   loadSpriteSheet(0, "Houses-32x48.png", 32, 48)
   loadSpriteSheet(1, "Tiles-16x16.png", 16, 16)
-  loadSpriteSheet(2, "V1_Road.png", 512, 96)
+  loadSpriteSheet(2, "roads.png", 512, 112)
+  loadSpriteSheet(3, "LoS_Cover.png", 224, 224)
+  loadSpriteSheet(4, "pc.png", 20, 26)
   setSpritesheet(1)
 
   objects = newSeq[Obj]()
