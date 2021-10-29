@@ -154,10 +154,12 @@ proc gameDraw() =
   cls()
 
   block grass:
-    setSpritesheet(1)
-    for x in countup(0, mapSize.x, tileSize.x):
-      for y in countup(0, mapSize.y, tileSize.y):
-        spr(13, x, y)
+    setColor(21)
+    rectfill(-150, -150, 450, 450)
+    # setSpritesheet(1)
+    # for x in countup(0, worldSize.x, tileSize.x):
+    #   for y in countup(0, worldSize.y, tileSize.y):
+    #     spr(13, x, y)
 
   block houses:
     setSpritesheet(0)
@@ -202,6 +204,9 @@ proc gameDraw() =
 
   for obj in objects:
     obj.draw()
+
+  if gs.state == gsWaiting:
+    return
 
   var displayTime = timer - (now() - gameStart).inSeconds
 
