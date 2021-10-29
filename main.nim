@@ -10,6 +10,9 @@ type
   RoadStages = enum
     rs0, rs1, rs2, rs3, rs4, rs5, rs6
 
+  Houses = enum
+    hFrankenstein, hVampire, hGhost, hDevil, hClown, hReaper
+
   Hitbox = tuple
     x, y, w, h: int
   
@@ -19,6 +22,7 @@ type
     hitbox: Hitbox
   
   House = ref object of Obj
+    style: Houses
 
   Player = ref object of Obj
     holding: Obj
@@ -32,6 +36,8 @@ type
   GameState = ref object of RootObj
     state: GameStates
     currentStage: RoadStages
+    player: Player
+    houses: seq[House]
 
 proc newPlayer(x, y: int): Player = 
   result = new Player
@@ -39,9 +45,28 @@ proc newPlayer(x, y: int): Player =
   result.hitbox = (x: x, y: y, w: 8, h: 8)
   result.velocity = vec2(0.0, 0.0)
 
+proc newHouse(style: Houses): House = 
+  result = new House
+  result.position = ivec2(0, 0)
+  result.hitbox = (x: 0, y: 0, w: 32, h: 48)
+  result.velocity = vec2(0.0, 0.0)
+  result.style = style
+
+var player = newPlayer(15, 15)
+var houses = block:
+  var res = newSeq[House](6)
+  var c = 0
+  for house in Houses.low..Houses.high:
+    echo $house
+    res[c] = newHouse(house)
+    c += 1
+  res
+    
 var gs = new GameState
 gs.state = gsWaiting
 gs.currentStage = rs0
+gs.player = player
+gs.houses = houses
 
 var player = newPlayer(15, 15)
 var objects = newSeq[Obj]()
