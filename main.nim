@@ -39,6 +39,8 @@ type
     currentStage: RoadStages
     player: Player
     houses: seq[House]
+    cam: Vec2
+    frame: int
 
 proc newPlayer(x, y: int): Player = 
   result = new Player
@@ -63,12 +65,17 @@ var houses = block:
     res[c] = newHouse(house)
     c += 1
   res
-    
-var gs = new GameState
+
+var 
+  cam = vec2()
+  gs = new GameState
+
 gs.state = gsWaiting
 gs.currentStage = rs0
 gs.player = player
 gs.houses = houses
+gs.cam = cam
+gs.frame = 0
 
 var player = newPlayer(15, 15)
 var objects = newSeq[Obj]()
@@ -165,6 +172,13 @@ proc gameInit() =
   # setMap(0)
 
 proc gameUpdate(dt: float32) =
+  # echo $dt
+  gs.frame += 1
+  if gs.frame == 29: gs.frame = 0
+  gs.cam.x = gs.player.position.x.toFloat - (mapSize.x div 2).toFloat + (10).toFloat
+  gs.cam.y = gs.player.position.y.toFloat - (mapSize.y div 2).toFloat + (13).toFloat
+  setCamera(gs.cam.x, gs.cam.y)
+
   if gs.state == gsWaiting:
     if btnp(pcStart):
       gs.state = gsPlaying
