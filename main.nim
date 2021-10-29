@@ -56,7 +56,16 @@ proc newHouse(style: Houses): House =
   result.velocity = vec2(0.0, 0.0)
   result.style = style
 
-var player = newPlayer(15, 15)
+
+let
+  gridSize = ivec2(40, 30)
+  worldSize = ivec2(192 * 2, 112 * 2)
+  mapSize = ivec2(192, 112)
+  tileSize = ivec2(16, 16)
+  houseSize = ivec2(32, 48)
+
+
+var player = newPlayer(100, 100)
 var houses = block:
   var res = newSeq[House](6)
   var c = 0
@@ -77,13 +86,11 @@ gs.houses = houses
 gs.cam = cam
 gs.frame = 0
 
-var player = newPlayer(15, 15)
-var objects = newSeq[Obj]()
-var gameStart: DateTime
-var timer = 5.0
-var sacrifices = 0
-var cam = ivec2()
-
+var
+  objects = newSeq[Obj]()
+  gameStart: DateTime
+  timer = 5.0
+  sacrifices = 0
 
 method update(self: Obj) {.base.} =
   discard
@@ -98,24 +105,28 @@ method update(self: Player) =
       res.x = -1
       gs.player.lastDirection = -1
 
-#     if btn(pcUp): res.y = -1
-#     elif btn(pcDown): res.y = 1
+    if btn(pcUp): res.y = -1
+    elif btn(pcDown): res.y = 1
 
-#     res
+    res
+  # echo $self.direction
+  var maxSpeed = 2.0
+  var acceleration = 0.05
+  var decceleration = 0.05
 
-#   var maxSpeed = 2.0
-#   var acceleration = 0.6
-#   var decceleration = 0.15
+  # self.velocity.x = approach()
 
-#   if abs(self.velocity.x) > maxSpeed:
-#     self.velocity.x = approach(self.velocity.x, self.direction.x.float32 * maxSpeed, decceleration)
-#   else:
-#     self.velocity.x = approach(self.velocity.x, self.direction.x.float32 * maxSpeed, acceleration)  
+  # gs.player.position += gs.player.direction
 
-#   if abs(self.velocity.y) > maxSpeed:
-#     self.velocity.y = approach(self.velocity.y, self.direction.y.float32 * maxSpeed, decceleration)
-#   else:
-#     self.velocity.y = approach(self.velocity.y, self.direction.y.float32 * maxSpeed, acceleration)  
+  if gs.player.direction.x == 0:
+    gs.player.velocity.x = approach(gs.player.velocity.x.float, gs.player.direction.x.float * maxSpeed, decceleration)
+  else:
+    gs.player.velocity.x = approach(gs.player.velocity.x.float, gs.player.direction.x.float * maxSpeed, acceleration)  
+
+  if gs.player.direction.y == 0:
+    gs.player.velocity.y = approach(gs.player.velocity.y.float, gs.player.direction.y.float * maxSpeed, decceleration)
+  else:
+    gs.player.velocity.y = approach(gs.player.velocity.y.float, gs.player.direction.y.float * maxSpeed, acceleration)  
 
 
 method draw(self: Obj) {.base.} =
@@ -171,6 +182,10 @@ proc gameInit() =
   # newMap(0,16,256,8,8)
   # setMap(0)
 
+proc move(self: var Player, ox, oy: float32) =
+  self.position.x += ox
+  self.position.y += oy
+
 proc gameUpdate(dt: float32) =
   # echo $dt
   gs.frame += 1
@@ -185,19 +200,13 @@ proc gameUpdate(dt: float32) =
       gameStart = now()
     return
 
-  for obj in objects:
-    obj.update()
-
-
-let
-  gridSize = ivec2(40, 30)
-  mapSize = ivec2(192, 112)
-  tileSize = ivec2(16, 16)
-  houseSize = ivec2(32, 48)
+  if gs.state != gsGameOver:
+    gs.player.move(gs.player.velocity.x * dt, gs.player.velocity.y * dt)
+    gs.player.update()
 
 
 proc housePosition(index: int): int = 
-  let sixth = (1.0 / 6.0) * mapSize.x.toFloat
+  let sixth = (1.0 / 6.0) * worldSize.x.toFloat
   result = (sixth * index.float).int + (houseSize.x div 2)
 
 proc gameDraw() = 
@@ -250,7 +259,6 @@ proc gameDraw() =
     printc("Devil's Night", screenWidth / 2, screenHeight / 3)
     printc("Press Start", screenWidth / 2, (screenHeight / 3) + 8)
     printc("[ Enter ]", screenWidth / 2, (screenHeight / 3) + 16)
-    return
 
   for obj in objects:
     obj.draw()
