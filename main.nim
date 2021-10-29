@@ -222,19 +222,9 @@ proc gameDraw() =
 
   block houses:
     setSpritesheet(0)
-
-    block frankenstein:
-      spr(0, housePosition(0), 45)
-    block vampire:
-      spr(1, housePosition(1), 30)
-    block reaper:
-      spr(5, housePosition(2), 60)
-    block devil:
-      spr(3, housePosition(3), 30)
-    block clown:
-      spr(4, housePosition(4), 45)
-    block ghost:
-      spr(2, housePosition(5), 60)
+    let offsets = @[45, 30, 60, 30, 45, 60]
+    for i, h in gs.houses:
+      spr(ord(h.style), housePosition(i), offsets[i])
   
   block road:
     setSpritesheet(2)
