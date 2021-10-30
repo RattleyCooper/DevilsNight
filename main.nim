@@ -42,6 +42,18 @@ type
     cam: Vec2
     frame: int
 
+proc overlaps(a,b: Obj): bool =
+  let ax0 = a.position.x + a.hitbox.x
+  let ax1 = a.position.x + a.hitbox.x + a.hitbox.w - 1
+  let ay0 = a.position.y + a.hitbox.y
+  let ay1 = a.position.y + a.hitbox.y + a.hitbox.h - 1
+
+  let bx0 = b.position.x + b.hitbox.x
+  let bx1 = b.position.x + b.hitbox.x + b.hitbox.w - 1
+  let by0 = b.position.y + b.hitbox.y
+  let by1 = b.position.y + b.hitbox.y + b.hitbox.h - 1
+  return not ( ax0 > bx1 or ay0 > by1 or ax1 < bx0 or ay1 < by0 )
+
 proc newPlayer(x, y: int): Player = 
   result = new Player
   result.position = ivec2(x, y)
@@ -118,15 +130,15 @@ method update(self: Player) =
 
   # gs.player.position += gs.player.direction
 
-  if gs.player.direction.x == 0:
-    gs.player.velocity.x = approach(gs.player.velocity.x.float, gs.player.direction.x.float * maxSpeed, decceleration)
-  else:
-    gs.player.velocity.x = approach(gs.player.velocity.x.float, gs.player.direction.x.float * maxSpeed, acceleration)  
+  # if gs.player.direction.x == 0:
+  #   gs.player.velocity.x = approach(gs.player.velocity.x.float, gs.player.direction.x.float * maxSpeed, decceleration)
+  # else:
+  #   gs.player.velocity.x = approach(gs.player.velocity.x.float, gs.player.direction.x.float * maxSpeed, acceleration)  
 
-  if gs.player.direction.y == 0:
-    gs.player.velocity.y = approach(gs.player.velocity.y.float, gs.player.direction.y.float * maxSpeed, decceleration)
-  else:
-    gs.player.velocity.y = approach(gs.player.velocity.y.float, gs.player.direction.y.float * maxSpeed, acceleration)  
+  # if gs.player.direction.y == 0:
+  #   gs.player.velocity.y = approach(gs.player.velocity.y.float, gs.player.direction.y.float * maxSpeed, decceleration)
+  # else:
+  #   gs.player.velocity.y = approach(gs.player.velocity.y.float, gs.player.direction.y.float * maxSpeed, acceleration)  
 
 
 method draw(self: Obj) {.base.} =
@@ -183,8 +195,8 @@ proc gameInit() =
   # setMap(0)
 
 proc move(self: var Player, ox, oy: float32) =
-  self.position.x += ox
-  self.position.y += oy
+  gs.player.position.x += ox
+  gs.player.position.y += oy
 
 proc gameUpdate(dt: float32) =
   # echo $dt
@@ -201,7 +213,7 @@ proc gameUpdate(dt: float32) =
     return
 
   if gs.state != gsGameOver:
-    gs.player.move(gs.player.velocity.x * dt, gs.player.velocity.y * dt)
+    gs.player.move(gs.player.direction.x.toFloat, gs.player.direction.y.toFloat)
     gs.player.update()
 
 
