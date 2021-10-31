@@ -1,6 +1,5 @@
 import nico
 import vmath
-import times
 import random
 import sequtils
 
@@ -53,7 +52,8 @@ type
   Music = enum
     mIntro, 
     mTheme1, mTheme2, mTheme3, mTheme4, mTheme5, mTheme6, mTheme7,
-    mGameOver
+    mGameOver,
+    mCredits
 
   GameStates = enum
     gsWaiting, gsPlaying, gsGameOver, gsEnding, gsCredits
@@ -125,7 +125,6 @@ let
 
 var 
   player = newPlayer(520, 125)
-  objects = newSeq[Obj]()
 
 var houses = block:
   var res = newSeq[House](6)
@@ -140,18 +139,12 @@ var
   gs = new GameState
 
 gs.state = gsWaiting
-gs.currentStage = s6
+gs.currentStage = s0
 gs.player = player
 gs.houses = houses
 gs.dropLocation = newDropoff()
 gs.cam = cam
 gs.frame = 0
-
-var
-  gameStart: DateTime
-  timer = 5.0
-  sacrifices = 0
-
 
 proc newItem(style: GameItems): Item =
   var item = new Item
@@ -204,7 +197,7 @@ gs.clownTrap = newItem(iGrate)
 method update(self: Obj) {.base.} =
   discard
 
-method update(item: var Item) =
+method update(item: var Item) {.base.} =
   item.position = item.house.position + ivec2(16, 48) + ivec2(0, 16)
 
 proc testCollision(house: House, x, y: float32): bool =
@@ -432,9 +425,10 @@ proc gameInit() =
   loadMusic(mTheme6.ord, "Theme 6-1.ogg")
   loadMusic(mTheme7.ord, "Theme 7-1.ogg")
   loadMusic(mGameOver.ord, "Theme for Game Over.ogg")
+  loadMusic(mCredits.ord, "End Credits.ogg")
 
   musicVol(100)
-  music(mIntro.ord, 0)
+  music(0, mIntro.ord)
 
   loadSfx(fxWalking.ord, "Footsteps (Fast).ogg")
   loadSfx(fxItemPickup.ord, "Pick up object.ogg")
@@ -445,6 +439,8 @@ proc gameInit() =
 
   gs.clownTrap.position.y = 138
   gs.clownTrap.position.x = rand(100..924)
+  gs.houses.shuffle()
+
 
   # newMap(0,16,256,8,8)
   # setMap(0)
@@ -465,27 +461,14 @@ proc resetGame() =
   gs.droppedItems = newSeq[Item]()
   gs.dropLocation = newDropoff()
 
-  # state: GameStates
-  # currentStage: Stages
-  # player: Player
-  # houses: seq[House]
-  # cam: Vec2
-  # frame: int
-  # currentRecipe: seq[Item]
-  # recipeMatch: seq[Item]
-  # droppedItems: seq[Item]
-  # dropLocation: DropLocation
-  # clownTrap: Item
-
-
 proc gameUpdate(dt: float32) =
   if gs.state == gsGameOver:
-    if btnp(pcStart):
-      gs.state = gsEnding
+    gs.state = gsEnding
     return
   if gs.state == gsEnding:
     if btnp(pcStart):
       gs.state = gsCredits
+      music(0, mCredits.ord)
     return
     
   if gs.state == gsCredits:
@@ -503,6 +486,10 @@ proc gameUpdate(dt: float32) =
 
   if deathAnim >= 11:
     gs.state = gsGameOver
+    gs.cam.x = 0.0
+    gs.cam.y = 0.0
+    setCamera(gs.cam.x, gs.cam.y)
+    return
     
   gs.cam.x = gs.player.position.x.toFloat - (mapSize.x div 2).toFloat + (10).toFloat
   gs.cam.y = gs.player.position.y.toFloat - (mapSize.y div 2).toFloat + (13).toFloat
@@ -511,11 +498,7 @@ proc gameUpdate(dt: float32) =
   if gs.state == gsWaiting:
     if btnp(pcStart):
       gs.state = gsPlaying
-      gameStart = now()
-      # advanceStage()
     return
-
-  # if gs.player.dead: gs.state = gsGameOver
 
   if gs.state == gsPlaying:
     if gs.player.position.x > 40 and gs.player.position.x < 944:
@@ -598,13 +581,8 @@ proc gameDraw() =
   block clownTrap:
     setSpritesheet(1)
     spr(gs.clownTrap.style.ord, gs.clownTrap.position.x, gs.clownTrap.position.y)
-    # box(gs.clownTrap.position.x, gs.clownTrap.position.y, gs.clownTrap.hitbox.w, gs.clownTrap.hitbox.h)
-  # let dlp = gs.dropLocation.position
-  # let dlh = gs.dropLocation.hitbox
-  # box(dlp.x, dlp.y, dlh.w, dlh.h)
 
-  # for obj in objects:
-    # obj.draw()
+  
   gs.player.draw()
   # box(gs.player.position.x + gs.player.hitbox.x, gs.player.position.y + gs.player.hitbox.y, gs.player.hitbox.w, gs.player.hitbox.y)
 
@@ -643,21 +621,6 @@ proc gameDraw() =
     setSpritesheet(7)
     spr(0, gs.cam.x, gs.cam.y)
     return
-
-  var displayTime = timer - (now() - gameStart).inSeconds
-
-  if displayTime <= 0:
-    # Game over
-    displayTime = 0
-
-    # setColor(7)
-    # printc("Time's Up!", screenWidth / 2, screenHeight / 3)
-    # printc($sacrifices & " sacrifices complete", screenWidth / 2, (screenHeight / 3) + 8)
-
-  # Ui
-  setColor(7)
-  print($displayTime, gs.cam.x + screenWidth / 2, 1)
-
 
 nico.init("We Jammin'", "Devil's Night")
 nico.createWindow("Devil's Night", mapSize.x, mapSize.y, 6)
